@@ -4,6 +4,7 @@
 #include <optional>
 
 #include "storage/StorageBlock.h"
+#include "PETNode.h"
 
 class PET {
 public:
@@ -14,5 +15,12 @@ public:
     std::optional<uint64_t> queryEdge(uint64_t src, uint64_t dst);
 
 private:
-    std::unique_ptr<StorageBlock> rootBlock_;
+    std::shared_ptr<StorageBlock> rootBlock_;
+
+	std::unique_ptr<PETNode> root_;
+
+    PETNode* routeToLeaf(const Fingerprint& fp);
+
+private:
+    static Fingerprint makeFingerprint(uint64_t src, uint64_t dst);
 };

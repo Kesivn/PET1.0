@@ -29,7 +29,7 @@ add_library(pet_core
     src/pet/PET.cpp
     src/fingerprint/Fingerprint.cpp
     src/storage/DummyStorageBlock.cpp
- "src/storage/DummyStorageBlock.h" "src/pet/PETNode.h" "src/pet/PETNode.cpp")
+ "src/storage/DummyStorageBlock.h" "src/pet/PETNode.h" "src/pet/PETNode.cpp" )
 
 target_include_directories(pet_core
     PUBLIC
@@ -45,7 +45,7 @@ target_include_directories(pet_core
 
 add_executable(pet_smoke_test
     tests/pet_smoke_test.cpp
- "src/storage/DummyStorageBlock.h" "src/pet/PETNode.h" "src/pet/PETNode.cpp")
+ "src/storage/DummyStorageBlock.h" "src/pet/PETNode.h" "src/pet/PETNode.cpp" )
 
 target_link_libraries(pet_smoke_test
     PRIVATE pet_core

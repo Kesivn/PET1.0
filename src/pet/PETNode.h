@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "storage/StorageBlock.h"
-#include <fingerprint/Fingerprint.h>
+#include "fingerprint/Fingerprint.h"
 
 class PETNode {
 public:
