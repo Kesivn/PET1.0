@@ -29,6 +29,9 @@ private:
 public:
     PETNode* next(const Fingerprint& fp);
 
+public:
+	void doExpand();
+
 };
 
 /*

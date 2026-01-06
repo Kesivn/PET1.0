@@ -1,15 +1,21 @@
 #include "PET.h"
 
-#include <storage/DummyStorageBlock.h>
-
 static uint64_t combine(uint64_t s, uint64_t d) {
     return (s << 32) ^ d;
 }
 
 PET::PET() {
     root_ = std::make_unique<PETNode>(0);
+}
 
-    rootBlock_ = std::make_shared<DummyStorageBlock>();
+void PET::input(uint64_t src, uint64_t dst, uint64_t weight, uint64_t t_stamp)
+{
+    if (insertEdge(src, dst, weight, t_stamp)) return;
+    if (inNormalState()) {
+        doExpand();
+        bool success = insertEdge(src, dst, weight, t_stamp);
+        assert(success); // 扩展后应当能插入成功
+	}
 }
 
 bool PET::insertEdge(uint64_t src, uint64_t dst, uint64_t weight, uint64_t t_stamp) {
@@ -29,7 +35,7 @@ std::optional<uint64_t> PET::queryEdge(uint64_t src, uint64_t dst) {
 
     if(node->block)
         return node->block->query(fp.raw());
-    return false;
+    return std::nullopt;
 }
 
 PETNode* PET::routeToLeaf(const Fingerprint& fp) {
@@ -46,4 +52,16 @@ Fingerprint PET::makeFingerprint(uint64_t src, uint64_t dst)
     tsr ^= dst + 0x9e3779b97f4a7c15ULL + (tsr << 6) + (tsr >> 2);
     //这是一个临时的哈希模拟
 	return Fingerprint(tsr, 64);
+}
+
+bool PET::inNormalState() const
+{
+    return state_ == PETState::normal;
+}
+
+void PET::doExpand()
+{
+    state_ = PETState::expanding;
+    root_->doExpand();
+	state_ = PETState::normal;
 }

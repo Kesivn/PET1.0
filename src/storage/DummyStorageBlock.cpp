@@ -1,7 +1,15 @@
 #include"DummyStorageBlock.h"
 
 bool DummyStorageBlock::insert(uint64_t key, uint64_t value) {
-    data_[key] += value;
+    auto it = data_.find(key);
+    if (it != data_.end()) {
+        it->second += value;
+        return true;
+    }
+
+    if (isFull()) return false;
+
+    data_.emplace(key, value);
     return true;
 }
 
@@ -12,6 +20,17 @@ std::optional<uint64_t> DummyStorageBlock::query(uint64_t key) {
 }
 
 bool DummyStorageBlock::isFull() const {
-    return data_.size() > 1000000; // 临时阈值
+    return data_.size() >= capacity_; // 临时阈值
+}
+
+size_t DummyStorageBlock::size() const {
+    return data_.size();
+}
+
+void DummyStorageBlock::forEach(const std::function<void(uint64_t key, uint64_t value)>& visitor) const
+{
+    for (const auto &p : data_) {
+        visitor(p.first, p.second);
+    }
 }
 
