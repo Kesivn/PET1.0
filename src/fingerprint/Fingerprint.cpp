@@ -21,9 +21,9 @@ Fingerprint::Fingerprint(uint64_t value, int length)
 }
 
 uint64_t Fingerprint::prefixBits(int k) const {
-    if (k <= 0) return 0ULL;
-    if (k >= length_) return value_;
-    int shift = length_ - k;
+    if (k < 0) return 0ULL;
+    if (k >= length_ - 1) return value_;
+    int shift = length_ - k - 1;
     return value_ >> shift;
 }
 

@@ -6,6 +6,7 @@
 
 #include "storage/StorageBlock.h"
 #include "PETNode.h"
+#include"monitoring/statistics.h"
 
 struct PETConfig {
     size_t block_capacity = 100000;
@@ -46,5 +47,23 @@ private:
     int prefix_depth_ = 0;
 
     PETConfig config_;
+
+private:
+    PETStats stats_ = {
+        {0,1,1},
+        {0,0,0,0},
+        {0,0,0},
+        {0,0.0},
+        {0,0.0}
+    };
+
+    void calculate_load_factor();
+
+	void calculate_all();
+
+public:
+    PETStats getStats() const;
+
+    void printStats() const;
 
 };

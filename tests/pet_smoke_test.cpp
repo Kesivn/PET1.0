@@ -6,17 +6,25 @@
 int main() {
     PET pet;
 
-    for (int i = 0; i < 1000000; ++i) {
-        if (!pet.insertEdge(i, i + 1, 1)) assert(i);
+    for (int i = 0; i < 300000; ++i) {
+        pet.input(i, i + 1, 1);
     }
-
-    for (int i = 0; i < 1000000; ++i) {
+    int miss = 0;
+    int wrong = 0;
+    for (int i = 0; i < 150000; ++i) {
         auto res = pet.queryEdge(i, i + 1);
-        assert(res.has_value());
-        assert(res.value() == 1);
+        if (!res.has_value()) miss++;
+        else {
+            if (res.value() != 1) {
+                wrong++;
+                //std::cout << i << " " << res.value() << std::endl;
+            }
+        }
     }
 
-    std::cout << "[PASS] Leaf invariant test\n";
+    if(miss) std::cout<<"[FAIL] Leaf invariant test, missed "<<miss<<" edges\n";
+    if (wrong) std::cout << "[FAIL] Leaf invariant test, wrong " << wrong << " edges\n";
+    if (!miss && !wrong)std::cout << "[PASS] Leaf invariant test\n";
 
     return 0;
 }

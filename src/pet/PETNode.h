@@ -30,18 +30,15 @@ public:
     PETNode* next(const Fingerprint& fp);
 
 public:
-	void doExpand();
-
+	int doExpand();
 };
 
 /*
 * 一个 PETNode 要么是叶子节点，要么是内部节点，不能两者兼有。
 * 
 *叶子节点：
-*block != nullptr
 *left == nullptr && right == nullptr
 *
 *内部节点：
-*block == nullptr
 *left != nullptr && right != nullptr
 */
