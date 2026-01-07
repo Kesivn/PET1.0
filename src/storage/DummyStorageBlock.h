@@ -29,4 +29,6 @@ private:
 
 public:
     void forEach(const std::function<void(uint64_t key, uint64_t value)>& visitor) const override;
+
+	bool isUse() const override;
 };

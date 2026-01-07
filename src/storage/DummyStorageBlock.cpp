@@ -34,3 +34,8 @@ void DummyStorageBlock::forEach(const std::function<void(uint64_t key, uint64_t 
     }
 }
 
+bool DummyStorageBlock::isUse() const
+{
+    return data_.size() > 0;
+}
+

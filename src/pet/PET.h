@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include <cassert>
+#include <string>
 
 #include "storage/StorageBlock.h"
 #include "PETNode.h"
@@ -22,6 +23,9 @@ public:
     bool insertEdge(uint64_t src, uint64_t dst, uint64_t weight = 1, uint64_t t_stamp = 0);
 
     std::optional<uint64_t> queryEdge(uint64_t src, uint64_t dst);
+
+    // 将统计信息写入指定日志文件（追加模式）
+    void dumpStatsToFile(const std::string& path) const;
 
 private:
 	std::unique_ptr<PETNode> root_;
@@ -57,6 +61,7 @@ private:
         {0,0.0}
     };
 
+public:
     void calculate_load_factor();
 
 	void calculate_all();

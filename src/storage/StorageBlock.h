@@ -18,6 +18,8 @@ public:
 
     virtual bool isFull() const = 0;
 
+    virtual bool isUse() const = 0;
+
     virtual ~StorageBlock() = default;
 
     virtual void forEach(const std::function<void(uint64_t key, uint64_t value)>& visitor) const = 0;

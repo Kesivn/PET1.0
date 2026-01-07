@@ -1,5 +1,6 @@
 #include "PET.h"
 #include <iostream>
+#include <fstream>
 
 static uint64_t combine(uint64_t s, uint64_t d) {
     return (s << 32) ^ d;
@@ -33,17 +34,19 @@ bool PET::insertEdge(uint64_t src, uint64_t dst, uint64_t weight, uint64_t t_sta
 
     PETNode* node = root_.get();
 
+    stats_.operation.insert_total += 1;
+
     for (int depth = 0; depth <= prefix_depth_; ++depth) {
         if (!node) break;
         if (node->block) {
-            if (node->block->insert(fp.raw(), weight)) return true;
+            if (node->block->insert(fp.raw(), weight)) { 
+                return true; 
+            }
         }
         if (depth == prefix_depth_) break;
         if (node->isLeaf()) break;
         node = node->next(fp);
     }
-
-	stats_.operation.insert_total += 1;
     return false;
 }
 
@@ -51,6 +54,8 @@ std::optional<uint64_t> PET::queryEdge(uint64_t src, uint64_t dst) {
     Fingerprint fp = makeFingerprint(src, dst);
 
     PETNode* node = root_.get();
+
+	stats_.operation.query_total += 1;
 
     for (int depth = 0; depth <= prefix_depth_; ++depth) {
         if (!node) break;
@@ -76,7 +81,8 @@ PETNode* PET::routeToLeaf(const Fingerprint& fp) {
 Fingerprint PET::makeFingerprint(uint64_t src, uint64_t dst)
 {
     uint64_t tsr = src;
-    tsr ^= dst + 0x9e3779b97f4a7c15ULL + (tsr << 6) + (tsr >> 2);
+    //tsr ^= dst + 0x9e3779b97f4a7c15ULL + (tsr << 6) + (tsr >> 2);
+	tsr ^= (tsr << 13) | (dst >> (64 - 13)) + 0x60642e2a34326f15ULL;
     //这是一个临时的哈希模拟
 	return Fingerprint(tsr, 64);
 }
@@ -89,12 +95,13 @@ bool PET::inNormalState() const
 void PET::doExpand()
 {
     state_ = PETState::expanding;
-    if (int add_nums=root_->doExpand() > 0) {
+    int add_nums = root_->doExpand();
+    if (add_nums) {
         prefix_depth_ += 1;
 
         stats_.structure.tree_depth = prefix_depth_;
         stats_.structure.leaf_count += add_nums;
-		stats_.structure.block_count += add_nums;
+		//stats_.structure.block_count += add_nums;
 
         stats_.expansion.expand_total += 1;
     }
@@ -103,6 +110,9 @@ void PET::doExpand()
 
 void PET::calculate_load_factor()
 {
+
+    stats_.structure.block_count = 0;
+
     size_t total_entries = 0;
     size_t total_capacity = 0;
     double max_load = 0.0;
@@ -123,6 +133,7 @@ void PET::calculate_load_factor()
             traverse(node->left.get());
             traverse(node->right.get());
         }
+        if (node->block->isUse()) stats_.structure.block_count += 1;
     };
     traverse(root_.get());
     stats_.storage.avg_load_factor = total_capacity == 0 ? 0.0 : static_cast<double>(total_entries) / total_capacity;
@@ -164,4 +175,34 @@ void PET::printStats() const
     std::cout << "Memory:" << std::endl;
     std::cout << "  Theoretical Memory Usage: " << stats.memory.memory_in_theory << " bytes" << std::endl;
 	std::cout << "  Relative Memory Savings: " << stats.memory.r_memory_save_in_theory * 100.0 << "%" << std::endl;
+}
+
+
+void PET::dumpStatsToFile(const std::string& path) const
+{
+    std::ofstream ofs(path, std::ios::app);
+    if (!ofs) return;
+
+    PETStats stats = stats_;
+    ofs << "=== PET Statistics ===\n";
+    ofs << "Structure:\n";
+    ofs << "  Tree Depth: " << stats.structure.tree_depth << "\n";
+    ofs << "  Block Count: " << stats.structure.block_count << "\n";
+    ofs << "  Leaf Count: " << stats.structure.leaf_count << "\n";
+    ofs << "Expansion:\n";
+    ofs << "  Total Expansions: " << stats.expansion.expand_total << "\n";
+    ofs << "  Effective Expansions: " << stats.expansion.expand_effective << "\n";
+    ofs << "  Ineffective Expansions: " << stats.expansion.expand_ineffective << "\n";
+    ofs << "  Failed Expansions: " << stats.expansion.expand_failed << "\n";
+    ofs << "Operation:\n";
+    ofs << "  Total Inserts: " << stats.operation.insert_total << "\n";
+    ofs << "  Successful Inserts: " << stats.operation.insert_success << "\n";
+    ofs << "  Total Queries: " << stats.operation.query_total << "\n";
+    ofs << "Storage:\n";
+    ofs << "  Average Load Factor: " << stats.storage.avg_load_factor << "\n";
+    ofs << "  Maximum Load Factor: " << stats.storage.max_load_factor << "\n";
+    ofs << "Memory:\n";
+    ofs << "  Theoretical Memory Usage: " << stats.memory.memory_in_theory << " bytes\n";
+    ofs << "  Relative Memory Savings: " << stats.memory.r_memory_save_in_theory * 100.0 << "%\n";
+    ofs.close();
 }
